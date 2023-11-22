@@ -1,0 +1,3 @@
+[submodule "UNet_Multiclass"]
+	path = UNet_Multiclass
+	url = https://github.com/GoodOnions/UNet-Multiclass.git

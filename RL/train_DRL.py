@@ -70,13 +70,15 @@ class Preprocessing:
         elif self.preprocessing_type == 'shad':
             img = self.model.segment_labels(frame)
             self.state_img_stack.append(img)
-            self.state_img_stack = state_img_stack[-4:]
-            img = self._merge_frames(state_img_stack)
+            self.state_img_stack = self.state_img_stack[-4:]
+            img = self._merge_frames(self.state_img_stack)
             img = cv2.cvtColor(img, cv2.COLOR_RGBA2GRAY)
 
         elif self.preprocessing_type == 'Unet':
-            img = transforms.ToTensor()(frame)
-            img = self.model(img.unsqueeze(0))
+            #cv2.imshow('img', frame)
+            img = self.model.predict(frame)
+
+            img = cv2.cvtColor(img, cv2.COLOR_RGBA2GRAY)
             img = np.uint8(img * 255 / 6)
 
         else:
@@ -133,6 +135,7 @@ class ProcessFrame84(gym.ObservationWrapper):
     def process(frame, pp: Preprocessing):
         global state_img_stack
         if frame.size == 240 * 256 * 3:
+            cv2.imshow('frame', frame)
             img = np.reshape(frame, [240, 256, 3]).astype(np.uint8)
 
             img = pp.process(img)
