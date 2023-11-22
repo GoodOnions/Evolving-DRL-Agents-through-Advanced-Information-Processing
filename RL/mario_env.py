@@ -22,11 +22,15 @@ class MaxAndSkipEnv(gym.Wrapper):
         done = None
         for _ in range(self._skip):
             obs, reward, done, info = self.env.step(action)
+
+            obs = self.env.render(mode='rgb_array')[:,:,::-1]
+
             self._obs_buffer.append(obs)
             total_reward += reward
             if done:
                 break
         max_frame = np.max(np.stack(self._obs_buffer), axis=0)
+
         return max_frame, total_reward, done, info
 
     def reset(self):

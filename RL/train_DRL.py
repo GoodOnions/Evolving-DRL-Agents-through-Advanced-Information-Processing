@@ -75,9 +75,9 @@ class Preprocessing:
             img = cv2.cvtColor(img, cv2.COLOR_RGBA2GRAY)
 
         elif self.preprocessing_type == 'Unet':
-            #cv2.imshow('img', frame)
-            img = self.model.predict(frame)
 
+            img = self.model.predict(frame)
+            cv2.imshow('imggggg', img)
             img = cv2.cvtColor(img, cv2.COLOR_RGBA2GRAY)
             img = np.uint8(img * 255 / 6)
 
@@ -126,19 +126,20 @@ class ProcessFrame84(gym.ObservationWrapper):
     def __init__(self, pp: Preprocessing, env=None):
         super(ProcessFrame84, self).__init__(env)
         self.pp = pp
-        self.observation_space = gym.spaces.Box(low=0, high=255, shape=(84, 84, 3), dtype=np.uint8)
+        shape_sample = (84, 84, 3)
+
+        self.observation_space = gym.spaces.Box(low=0, high=255, shape=shape_sample, dtype=np.uint8)
 
     def observation(self, obs):
         return ProcessFrame84.process(obs, self.pp)
 
     @abstractmethod
     def process(frame, pp: Preprocessing):
-        global state_img_stack
-        if frame.size == 240 * 256 * 3:
-            cv2.imshow('frame', frame)
-            img = np.reshape(frame, [240, 256, 3]).astype(np.uint8)
 
+        if frame.size == 240 * 256 * 3:
+            img = np.reshape(frame, [240, 256, 3]).astype(np.uint8)
             img = pp.process(img)
+            cv2.imshow('Segmented', img)
 
         else:
             assert False, "Unknown resolution."
@@ -161,18 +162,18 @@ def show_state(env, ep=0, info=""):
 
 def make_env(env,pp):
     env = MaxAndSkipEnv(env)
-    #print(env.observation_space.shape)
+    # print(env.observation_space.shape)
     env = ProcessFrame84(env=env,pp=pp)
-    #print(env.observation_space.shape)
+    print(env.observation_space.shape)
 
     env = ImageToPyTorch(env)
-    #print(env.observation_space.shape)
+    # print(env.observation_space.shape)
 
     env = BufferWrapper(env, 6)
-    #print(env.observation_space.shape)
+    # print(env.observation_space.shape)
 
     env = ScaledFloatFrame(env)
-    #print(env.observation_space.shape)
+    # print(env.observation_space.shape)
 
     return JoypadSpace(env, RIGHT_ONLY) #Fixes action sets
 
@@ -221,9 +222,6 @@ def run(training_mode, pretrained,
 
     # Each iteration is an episode (epoch)
     for ep_num in tqdm(range(epochs)):
-        global vis_img_stack, state_img_stack
-        vis_img_stack = []
-        state_img_stack = []
 
         # Reset state and convert to tensor
         state = env.reset()
@@ -338,7 +336,7 @@ if __name__ == '__main__':
     pp = Preprocessing('Unet', '../UNet_Multiclass/models/e40_b32_unet.pth', 3, 6, device)
 
     training_parameters = {
-        "working_dir": './RL/results/',
+        "working_dir": './results/',
         "batch_size": 32,
         "gamma": 0.90,
         "dropout": 0.,
