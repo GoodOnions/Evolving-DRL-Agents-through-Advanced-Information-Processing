@@ -3,7 +3,7 @@
 # !pip install gym-super-mario-bros
 # !apt-get update
 # !apt-get install ffmpeg libsm6 libxext6  -y
-
+import cv2
 import torch
 from tqdm import tqdm
 from abc import abstractmethod
@@ -28,6 +28,7 @@ class Preprocessing:
         - SS    -> Res-net model
         - Unet  -> Unet model
         - shad  -> Shadow frame combination
+        - Gray  -> Grayscale
         - None  -> No pre processing
 
     Define preprocessing parameters:
@@ -54,8 +55,8 @@ class Preprocessing:
         if self.preprocessing_type == 'SS' or self.preprocessing_type == 'shad':
             self.model = ResNet(self.model_path, device=self.device)
 
-        elif self.preprocessing_type == 'Unet':
-            self.model = UNet(self.in_channels, self.out_channels)
+        elif self.preprocessing_type == 'Unet' or self.preprocessing_type == 'UnetLayer':
+            self.model = UNet(self.model_path, self.in_channels, self.out_channels, device=self.device)
 
         else:
             self.model = None
@@ -69,18 +70,30 @@ class Preprocessing:
 
         elif self.preprocessing_type == 'shad':
             img = self.model.segment_labels(frame)
+
             self.state_img_stack.append(img)
             self.state_img_stack = self.state_img_stack[-4:]
             img = self._merge_frames(self.state_img_stack)
             img = cv2.cvtColor(img, cv2.COLOR_RGBA2GRAY)
 
         elif self.preprocessing_type == 'Unet':
-
+            frame = cv2.resize(frame, (272, 240), interpolation=cv2.INTER_NEAREST)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             img = self.model.predict(frame)
-            cv2.imshow('imggggg', img)
             img = cv2.cvtColor(img, cv2.COLOR_RGBA2GRAY)
-            img = np.uint8(img * 255 / 6)
+            #img = np.uint8(img * 255 / 6)
 
+        elif self.preprocessing_type == 'UnetLayer':
+            frame = cv2.resize(frame, (272, 240), interpolation=cv2.INTER_NEAREST)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+            img = self.model.predict(frame, 3)
+
+            img = cv2.cvtColor(img, cv2.COLOR_RGBA2GRAY)
+            #img = np.uint8(img * 255 / 6)
+
+        elif self.preprocessing_type == 'Gray':
+            img = cv2.resize(frame, (int(272/0.7), int(240/0.7)), interpolation=cv2.INTER_NEAREST)
         else:
             img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Convert to grayscale
 
@@ -139,8 +152,7 @@ class ProcessFrame84(gym.ObservationWrapper):
         if frame.size == 240 * 256 * 3:
             img = np.reshape(frame, [240, 256, 3]).astype(np.uint8)
             img = pp.process(img)
-            cv2.imshow('Segmented', img)
-
+            cv2.imshow  ('Segmented', img)
         else:
             assert False, "Unknown resolution."
 
@@ -157,7 +169,7 @@ def vectorize_action(action, action_space):
 
 
 def show_state(env, ep=0, info=""):
-    cv2.imshow("Output!",env.render(mode='rgb_array')[:,:,::-1]) #Display using opencv
+    #cv2.imshow("Output!",env.render(mode='rgb_array')[:,:,::-1]) #Display using opencv
     cv2.waitKey(1)
 
 def make_env(env,pp):
@@ -333,7 +345,10 @@ if __name__ == '__main__':
     else:
         print('Running on the CPU')
 
-    pp = Preprocessing('Unet', '../UNet_Multiclass/models/e40_b32_unet.pth', 3, 6, device)
+    #pp = Preprocessing('Unet', '../UNet_Multiclass/models/e60_b32_grey_unet_super.pth', 1, 6, device)
+    pp = Preprocessing('UnetLayer', '../UNet_Multiclass/models/e60_b32_grey_unet_super.pth', 1, 6, device)
+    #pp = Preprocessing('SS', '../ResNet50/models/resnet_50.pth', 1, 6, device)
+    #pp = Preprocessing('shad', '../ResNet50/models/resnet_50.pth', 1, 6, device)
 
     training_parameters = {
         "working_dir": './results/',
@@ -341,7 +356,7 @@ if __name__ == '__main__':
         "gamma": 0.90,
         "dropout": 0.,
         "learning_rate": 0.00025,
-        "epochs": 10,
+        "epochs": 600,
         "backup_interval": 2,
         "max_exploration_rate": 0.8,
         "min_exploration_rate": 0.2,
