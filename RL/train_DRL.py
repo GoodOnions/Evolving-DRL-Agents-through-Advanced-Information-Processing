@@ -19,6 +19,7 @@ from RL.mario_env import *
 import collections
 from PIL import Image
 import numpy as np
+from matplotlib import colors
 
 from DQN import *
 
@@ -57,9 +58,18 @@ class Preprocessing:
 
         elif self.preprocessing_type == 'Unet' or self.preprocessing_type == 'UnetLayer':
             self.model = UNet(self.model_path, self.in_channels, self.out_channels, device=self.device)
+            if self.preprocessing_type == 'UnetLayer':
+                self.colors = self.random_color_list_generator(1024)
 
         else:
             self.model = None
+
+    def random_color_list_generator(self, n):
+        random.seed(200006011)
+        color_list = []
+        for i in range(n):
+            color_list.append(tuple(i * 255 for i in colors.to_rgb(random.choice(list(colors.CSS4_COLORS)))))
+        return color_list
 
     def process(self, frame):
         img = None
@@ -87,15 +97,14 @@ class Preprocessing:
             frame = cv2.resize(frame, (272, 240), interpolation=cv2.INTER_NEAREST)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-            img = self.model.predict(frame, 3)
-
-            img = cv2.cvtColor(img, cv2.COLOR_RGBA2GRAY)
-            #img = np.uint8(img * 255 / 6)
+            img = self.model.predict(frame, 0, self.colors)
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         elif self.preprocessing_type == 'Gray':
             img = cv2.resize(frame, (int(272/0.7), int(240/0.7)), interpolation=cv2.INTER_NEAREST)
         else:
             img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Convert to grayscale
+
 
         return img
 
@@ -169,7 +178,7 @@ def vectorize_action(action, action_space):
 
 
 def show_state(env, ep=0, info=""):
-    #cv2.imshow("Output!",env.render(mode='rgb_array')[:,:,::-1]) #Display using opencv
+    cv2.imshow("Output!",env.render(mode='rgb_array')[:,:,::-1]) #Display using opencv
     cv2.waitKey(1)
 
 def make_env(env,pp):
@@ -207,6 +216,7 @@ def run(training_mode, pretrained,
     env = make_env(env, pp)  # Wraps the environment so that frames are grayscale / segmented
     observation_space = env.observation_space.shape
     action_space = env.action_space.n
+
     agent = DQNAgent(state_space=observation_space,
                      action_space=action_space,
                      max_memory_size=4000,
@@ -248,6 +258,7 @@ def run(training_mode, pretrained,
             # Visualize or not
             if vis:
                 show_state(env, ep_num)
+
 
             # What action would the agent perform
             action = agent.act(state)
@@ -345,8 +356,8 @@ if __name__ == '__main__':
     else:
         print('Running on the CPU')
 
-    #pp = Preprocessing('Unet', '../UNet_Multiclass/models/e60_b32_grey_unet_super.pth', 1, 6, device)
-    pp = Preprocessing('UnetLayer', '../UNet_Multiclass/models/e60_b32_grey_unet_super.pth', 1, 6, device)
+    pp = Preprocessing('Unet', '../UNet_Multiclass/models/e60_b32_grey_unet_super_best.pth', 1, 6, device)
+    #pp = Preprocessing('UnetLayer', '../UNet_Multiclass/models/e60_b32_grey_unet_super_best.pth', 1, 6, device)
     #pp = Preprocessing('SS', '../ResNet50/models/resnet_50.pth', 1, 6, device)
     #pp = Preprocessing('shad', '../ResNet50/models/resnet_50.pth', 1, 6, device)
 
@@ -362,15 +373,19 @@ if __name__ == '__main__':
         "min_exploration_rate": 0.2,
         "exploration_decay": 0.99,
         "run_name" : "test",
+        "path_dq1": '/Users/daniele/KTH-Projects/Semantic-Segmentation-for-Deep-Reinforcement-Learning/RL/results/e404best_performer_dq1.pt',
+        "path_dq2": '/Users/daniele/KTH-Projects/Semantic-Segmentation-for-Deep-Reinforcement-Learning/RL/results/e404best_performer_dq2.pt'
     }
 
-    run(training_mode=True,
-        pretrained=False,
+    run(training_mode=False,
+        pretrained=True,
         vis=True,
         training_parameters=training_parameters,
         device=device,
         level='1-1',
         savepath=training_parameters["working_dir"],
+        path_dq1=training_parameters["path_dq1"],
+        path_dq2=training_parameters["path_dq2"],
         pp=pp)
 
 
