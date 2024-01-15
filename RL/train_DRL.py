@@ -356,25 +356,25 @@ if __name__ == '__main__':
     else:
         print('Running on the CPU')
 
-    pp = Preprocessing('Unet', '../UNet_Multiclass/models/e60_b32_grey_unet_super_best.pth', 1, 6, device)
+    #pp = Preprocessing('Unet', '../UNet_Multiclass/models/e60_b32_grey_unet_super_best.pth', 1, 6, device)
     #pp = Preprocessing('UnetLayer', '../UNet_Multiclass/models/e60_b32_grey_unet_super_best.pth', 1, 6, device)
-    #pp = Preprocessing('SS', '../ResNet50/models/resnet_50.pth', 1, 6, device)
+    pp = Preprocessing('SS', '../ResNet50/models/resnet_50.pth', 1, 6, device)
     #pp = Preprocessing('shad', '../ResNet50/models/resnet_50.pth', 1, 6, device)
 
     training_parameters = {
-        "working_dir": './results/',
+        "working_dir": './results/unet/',
         "batch_size": 32,
         "gamma": 0.90,
         "dropout": 0.,
         "learning_rate": 0.00025,
-        "epochs": 600,
-        "backup_interval": 2,
+        "epochs": 1000,
+        "backup_interval": 50,
         "max_exploration_rate": 0.8,
         "min_exploration_rate": 0.2,
         "exploration_decay": 0.99,
         "run_name" : "test",
-        "path_dq1": '/Users/daniele/KTH-Projects/Semantic-Segmentation-for-Deep-Reinforcement-Learning/RL/results/e404best_performer_dq1.pt',
-        "path_dq2": '/Users/daniele/KTH-Projects/Semantic-Segmentation-for-Deep-Reinforcement-Learning/RL/results/e404best_performer_dq2.pt'
+        "path_dq1": '/Users/daniele/KTH-Projects/Semantic-Segmentation-for-Deep-Reinforcement-Learning/RL/results/unet/dq1.pt',
+        "path_dq2": '/Users/daniele/KTH-Projects/Semantic-Segmentation-for-Deep-Reinforcement-Learning/RL/results/unet/dq2.pt'
     }
 
     run(training_mode=False,
