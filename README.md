@@ -17,22 +17,22 @@
 <img src="https://raw.githubusercontent.com/vpulab/Semantic-Segmentation-Boost-Reinforcement-Learning/13a73318feeba91583fedd16ee6983118c79784e/Images/Mario_example.gif" width="600">
 
 ## Abstract
-This research explores the impact of input preprocessing techniques on the learning efficiency
-of Reinforcement Learning (RL) agents.
+This study examines the impact of input preprocessing techniques on the learning efficiency of
+Reinforcement Learning (RL) agents, with a specific focus on addressing the research question:
+”How does the agent’s performance change when the environment is presented using a more dense
+representation (i.e., more information encoded in the same space or the same amount of information
+encoded in a smaller space)?” The research centers on integrating advanced image processing and
+dimensionality reduction strategies to enhance RL algorithm performance.
 
-The study focuses on the integration of advanced image
-processing and dimensionality reduction strategies to improve the performance of RL algorithms. Using
-the OpenAI Gym framework and the Super Mario video game environment, the effectiveness of diverse
-input preprocessing methods is examined. Key techniques investigated include semantic segmentation
-and the use of autoencoders.
+Utilizing the OpenAI Gym framework and the Super Mario video game environment, the study
+assesses the effectiveness of increasing information density provided to the agent, achieved through both
+the utilization of more data and the reduction of the input representation space. Key techniques explored
+encompass semantic segmentation with U-Net and its representation layers, as well as the development
+and application of a frame merging technique. 
 
-The research notably delves into the application of DeepLabV3 and U-
-Net models for semantic segmentation, as well as the development of an N-Frame merging technique
-for input data representation. Double Deep Q-Learning is employed to evaluate the effectiveness of
-these preprocessing methods.
+While neither method conclusively demonstrated an
+improvement in the agent’s performance, frame merging, which introduces the state-transition concept
+into the input representation, showcased a more stable enhancement in the agent’s capabilities.
 
-The results from various experiments, though not conclusively favoring
-any single technique, provide valuable insights into the potential of preprocessing in enhancing RL
-efficiency.
 
 
